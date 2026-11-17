@@ -1,0 +1,36 @@
+{
+  "projects": [
+    {
+      "name": "Northstar onboarding",
+      "owner": "Mona Patel",
+      "status": "On track",
+      "recentActivity": "Welcome flow shipped to the beta group; first-session feedback is coming in.",
+      "priority": "High",
+      "summary": "Make the first five minutes feel thoughtful, useful, and unmistakably ours."
+    },
+    {
+      "name": "Field notes",
+      "owner": "Eli Chen",
+      "status": "In progress",
+      "recentActivity": "Research synthesis is complete, with three clear themes ready for review.",
+      "priority": "Medium",
+      "summary": "Turn customer conversations into a practical guide for the next product decisions."
+    },
+    {
+      "name": "Open garden",
+      "owner": "Sam Rivera",
+      "status": "At risk",
+      "recentActivity": "The partner handoff needs one more decision before the pilot can be confirmed.",
+      "priority": "High",
+      "summary": "Create a welcoming space for community teams to share and grow their ideas."
+    },
+    {
+      "name": "Quiet hours",
+      "owner": "Jordan Lee",
+      "status": "On track",
+      "recentActivity": "The notification settings are in final testing ahead of the next release.",
+      "priority": "Low",
+      "summary": "Help people protect focused time without missing the updates that matter."
+    }
+  ]
+}

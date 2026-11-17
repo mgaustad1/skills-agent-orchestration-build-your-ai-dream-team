@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f5ef">
+    <meta name="description" content="A clear, at-a-glance view of project health, ownership, and recent progress.">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="Project Pulse home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>project<span class="brand-light">pulse</span></span>
+        </a>
+        <div class="topbar-note">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>Team overview</span>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <section class="dashboard-header" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>THE WORK, AT A GLANCE</p>
+            <h1 id="page-title">Good work is<br><span>always in motion.</span></h1>
+            <p class="hero-description">A clear view of what’s moving, who’s making it happen, and where a little focus goes a long way.</p>
+          </div>
+          <aside class="hero-note" aria-label="Dashboard guide">
+            <span class="note-icon" aria-hidden="true">✳</span>
+            <div>
+              <p class="note-title">A little more clarity.</p>
+              <p class="note-copy">Check the pulse, celebrate progress, and spot what needs a hand.</p>
+            </div>
+          </aside>
+        </section>
+
+        <section class="project-section" aria-labelledby="projects-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow section-eyebrow">YOUR PORTFOLIO</p>
+              <h2 id="projects-heading">Projects <span class="section-count" id="project-count">—</span></h2>
+            </div>
+            <p class="section-caption">A snapshot of what’s happening right now</p>
+          </div>
+
+          <div class="dashboard" id="project-list" aria-live="polite" aria-busy="true">
+            <p class="loading-message">Gathering the latest project updates<span class="loading-dots" aria-hidden="true">...</span></p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span class="footer-mark" aria-hidden="true">P</span>
+        <p>Small steps add up to big things.</p>
+        <span class="footer-tag">PROJECT PULSE <span aria-hidden="true">·</span> TEAM EDITION</span>
+      </footer>
+    </div>
+
+    <script>
+      const projectList = document.querySelector("#project-list");
+      const projectCount = document.querySelector("#project-count");
+      const requiredFields = ["name", "owner", "status", "recentActivity", "priority", "summary"];
+
+      function createTextElement(tagName, className, text) {
+        const element = document.createElement(tagName);
+        element.className = className;
+        element.textContent = text;
+        return element;
+      }
+
+      function createProjectCard(project, index) {
+        const article = document.createElement("article");
+        article.className = "project-card";
+        article.setAttribute("aria-labelledby", `project-title-${index}`);
+
+        const cardTop = document.createElement("div");
+        cardTop.className = "card-top";
+        const marker = document.createElement("span");
+        marker.className = "card-marker";
+        marker.setAttribute("aria-hidden", "true");
+        marker.textContent = String(index + 1).padStart(2, "0");
+
+        const status = createTextElement("span", "status", project.status);
+        status.setAttribute("aria-label", `Status: ${project.status}`);
+        status.classList.add(`status--${project.status.toLowerCase().replaceAll(" ", "-")}`);
+        cardTop.append(marker, status);
+
+        const title = createTextElement("h3", "project-name", project.name);
+        title.id = `project-title-${index}`;
+        const summary = createTextElement("p", "project-summary", project.summary);
+
+        const ownerRow = document.createElement("div");
+        ownerRow.className = "owner-row";
+        const avatar = createTextElement("span", "owner-avatar", project.owner.trim().charAt(0).toUpperCase());
+        avatar.setAttribute("aria-hidden", "true");
+        const ownerDetails = document.createElement("span");
+        ownerDetails.className = "owner-details";
+        ownerDetails.append(
+          createTextElement("span", "detail-label", "PROJECT LEAD"),
+          createTextElement("span", "owner-name", project.owner)
+        );
+        ownerRow.append(avatar, ownerDetails);
+
+        const activity = document.createElement("div");
+        activity.className = "activity-block";
+        activity.append(
+          createTextElement("span", "detail-label", "RECENT ACTIVITY"),
+          createTextElement("p", "recent-activity", project.recentActivity)
+        );
+
+        const cardFooter = document.createElement("div");
+        cardFooter.className = "card-footer";
+        const priority = createTextElement("span", "priority", project.priority);
+        priority.setAttribute("aria-label", `Priority: ${project.priority}`);
+        priority.classList.add(`priority--${project.priority.toLowerCase()}`);
+        cardFooter.append(createTextElement("span", "footer-label", "PRIORITY"), priority);
+
+        article.append(cardTop, title, summary, ownerRow, activity, cardFooter);
+        return article;
+      }
+
+      async function loadProjects() {
+        try {
+          const response = await fetch("./project-data.json");
+          if (!response.ok) {
+            throw new Error(`Project data request failed with status ${response.status}`);
+          }
+
+          const data = await response.json();
+          if (!Array.isArray(data.projects)) {
+            throw new Error("Project data must include a projects array");
+          }
+
+          const projects = data.projects.map((project, index) => {
+            if (!project || requiredFields.some((field) => typeof project[field] !== "string" || !project[field].trim())) {
+              throw new Error(`Project ${index + 1} is missing one or more required fields`);
+            }
+            return project;
+          });
+
+          projectCount.textContent = String(projects.length).padStart(2, "0");
+          projectList.replaceChildren();
+          if (projects.length === 0) {
+            projectList.append(createTextElement("p", "empty-message", "No projects yet. Your next big thing starts here."));
+          } else {
+            projects.forEach((project, index) => projectList.append(createProjectCard(project, index)));
+          }
+          projectList.setAttribute("aria-busy", "false");
+        } catch (error) {
+          console.error("Unable to load project data:", error);
+          projectCount.textContent = "—";
+          projectList.replaceChildren(
+            createTextElement("p", "error-message", "We couldn’t load the project updates. Please try again in a moment.")
+          );
+          projectList.setAttribute("aria-busy", "false");
+        }
+      }
+
+      loadProjects();
+    </script>
+  </body>
+</html>
